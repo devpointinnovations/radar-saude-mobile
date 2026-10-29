@@ -14,7 +14,7 @@ era `1` fixo. Por isso todo APK novo exigia desinstalar o anterior, perdendo log
 ## Pacote, nome e versão por ambiente
 
 Decididos no build (`-Pambiente`, `-PappVersionName`, `-PappVersionCode`) — ver o topo
-de `frontend/android/app/build.gradle`:
+de `android/app/build.gradle`:
 
 | Ambiente | Pacote | Nome no celular | versionName | versionCode |
 |---|---|---|---|---|
@@ -23,7 +23,7 @@ de `frontend/android/app/build.gradle`:
 | prod | `com.gabrielvogado.saudemonitor` | Radar Saúde | `X.Y.Z` | `X*1000000 + Y*10000 + Z*100`, do nome da `release/X.Y.Z` |
 
 Pacotes diferentes = apps diferentes: DEV e HML ficam instalados lado a lado.
-`X.Y.Z` é o `expo.version` de `frontend/app.json`. Build local sem as propriedades
+`X.Y.Z` é o `expo.version` de `app.json`. Build local sem as propriedades
 continua saindo como antes (pacote sem sufixo, `versionCode 1`).
 
 ## Criar a chave de release (uma vez só)

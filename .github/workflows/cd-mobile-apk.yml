@@ -45,8 +45,16 @@ on:
   # produziria um segundo APK, sem versao de release e apontando para dev.
   push:
     branches: [develop]
+    # Repositorio proprio desde 29/10/2026: so o que entra no APK dispara build.
     paths:
-      - 'frontend/**'
+      - 'src/**'
+      - 'assets/**'
+      - 'android/**'
+      - 'App.js'
+      - 'index.js'
+      - 'app.json'
+      - 'package.json'
+      - 'package-lock.json'
       - '.github/workflows/cd-mobile-apk.yml'
 
   workflow_dispatch:
@@ -134,9 +142,6 @@ jobs:
     name: APK ${{ inputs.ambiente || 'dev' }} (${{ inputs.variante || 'release' }})
     runs-on: ubuntu-latest
     timeout-minutes: 60
-    defaults:
-      run:
-        working-directory: frontend
     outputs:
       artefato: ${{ steps.apk.outputs.artefato }}
       arquivo: ${{ steps.apk.outputs.arquivo }}
@@ -155,7 +160,7 @@ jobs:
         with:
           node-version: '20'
           cache: npm
-          cache-dependency-path: frontend/package-lock.json
+          cache-dependency-path: package-lock.json
 
       - name: Setup Java 17
         uses: actions/setup-java@v4
@@ -169,7 +174,7 @@ jobs:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: gradle-apk-${{ hashFiles('frontend/android/**/*.gradle*', 'frontend/android/gradle/wrapper/gradle-wrapper.properties') }}
+          key: gradle-apk-${{ hashFiles('android/**/*.gradle*', 'android/gradle/wrapper/gradle-wrapper.properties') }}
           restore-keys: gradle-apk-
 
       - name: Instalar dependências
@@ -305,7 +310,7 @@ jobs:
 
       - name: Build do ${{ inputs.formato == 'aab' && 'AAB' || 'APK' }}
         env:
-          # ESTA linha decide o destino do APK, nao o `frontend/app.json`:
+          # ESTA linha decide o destino do APK, nao o `app.json`:
           # `src/config/api.js` le `EXPO_PUBLIC_API_BASE_URL` PRIMEIRO. Hom/prod recebem a
           # URL do backend que o orquestrador acabou de publicar; dev usa a variavel de
           # repositorio ou o Cloud Run de dev.
@@ -320,7 +325,7 @@ jobs:
           ANDROID_RELEASE_KEY_PASSWORD: ${{ secrets.ANDROID_RELEASE_KEY_PASSWORD }}
           VERSION_NAME: ${{ steps.versao.outputs.nome }}
           VERSION_CODE: ${{ steps.versao.outputs.codigo }}
-        working-directory: frontend/android
+        working-directory: android
         run: |
           set -euo pipefail
           chmod +x gradlew

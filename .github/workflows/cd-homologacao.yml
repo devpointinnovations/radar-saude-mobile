@@ -3,16 +3,14 @@
 # Decisao do PO em 22/09/2026: `master` = homologacao; producao fica para `release/<tag>`.
 #
 #   push em master
-#     -> versao   calcula vX.Y.Z-rc.N (X.Y.Z do frontend/app.json, N = proxima rc livre)
+#     -> versao   calcula vX.Y.Z-rc.N (X.Y.Z do app.json, N = proxima rc livre)
 #     -> apk      APK `.hom` assinado com a chave de release (cd-mobile-apk.yml)
-#     -> backend  Cloud Run `saude-monitor-backend-hom` + smoke tests (cd-backend-google.yml)
 #     -> release  confere a URL do APK, cria tag + GitHub Release (pre-release) com o APK
 #
-# A ordem e o ponto (code-review de 22/09/2026): o APK vem ANTES do backend. Ele e a parte
-# que mais falha (Gradle, chave, secrets) e, se falhasse depois do deploy, o backend de
-# homologacao ficaria com codigo novo sem rc correspondente -- e o APK da rc anterior,
-# na mao dos testadores, falando com uma API que pode ter mudado. Nesta ordem, uma
-# falha do APK nao toca no ambiente, e uma falha do backend nao cria tag.
+# Desde 29/10/2026 o app tem repositorio proprio: o backend de homologacao sai do
+# radar-saude-backend, com a rc dele, e este workflow so gera o APK. Quando uma mudanca
+# do app depende de uma mudanca da API, promover o backend para a master ANTES do app:
+# o job `release` so confere que a URL de homologacao responde, nao a versao dela.
 #
 # O APK nao precisa esperar o deploy para saber a URL: o Cloud Run publica tambem uma
 # URL DETERMINISTICA, `https://<servico>-<numero do projeto>.<regiao>.run.app`
@@ -27,9 +25,8 @@ name: CD - Homologação
 on:
   push:
     branches: [master]
-  # Manual SO na `master` (o job `versao` recusa outra ref): o `cd-backend-google.yml`
-  # escolhe o ambiente pela ref, e um disparo da `develop` publicaria o backend de DEV
-  # e uma "rc de homologacao" apontando para ele.
+  # Manual SO na `master` (o job `versao` recusa outra ref): uma "rc de homologacao"
+  # gerada de outra branch nao seria o que esta homologado.
   workflow_dispatch:
 
 # Uma rc por vez, e a em andamento nunca e cancelada (deixaria o pipeline pela metade).
@@ -76,9 +73,9 @@ jobs:
         run: |
           set -euo pipefail
           TAGS=$(git ls-remote --tags origin 'refs/tags/v*-rc.*' | sed -E 's#.*refs/tags/##; s#\^\{\}$##' | sort -u)
-          BASE=$(node -p "require('./frontend/app.json').expo.version")
+          BASE=$(node -p "require('./app.json').expo.version")
           if ! [[ "$BASE" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
-            echo "ERRO: expo.version '$BASE' em frontend/app.json nao e X.Y.Z."
+            echo "ERRO: expo.version '$BASE' em app.json nao e X.Y.Z."
             exit 1
           fi
           X=${BASH_REMATCH[1]}; Y=${BASH_REMATCH[2]}; Z=${BASH_REMATCH[3]}
@@ -103,7 +100,7 @@ jobs:
             N=$(( ${ULTIMA:-0} + 1 ))
           fi
           if [ "$N" -gt 99 ]; then
-            echo "ERRO: v${BASE} ja tem 99 rcs. Suba a versao em frontend/app.json."
+            echo "ERRO: v${BASE} ja tem 99 rcs. Suba a versao em app.json."
             exit 1
           fi
           TAG="v${BASE}-rc.${N}"
@@ -111,7 +108,7 @@ jobs:
 
           # A maior rc ja homologada (qualquer X.Y.Z): o APK novo precisa de versionCode
           # MAIOR, senao o Android recusa instalar por cima. Pega quem baixou a versao em
-          # frontend/app.json por engano.
+          # app.json por engano.
           MAIOR=0; ANTERIOR=""
           for T in $TAGS; do
             [ "$T" = "$TAG" ] && continue
@@ -120,7 +117,7 @@ jobs:
           done
           if [ -z "$EXISTENTE" ] && [ "$CODE" -le "$MAIOR" ]; then
             echo "ERRO: $TAG (versionCode $CODE) nao e maior que $ANTERIOR ($MAIOR)."
-            echo "      O APK nao instalaria por cima. Suba expo.version em frontend/app.json."
+            echo "      O APK nao instalaria por cima. Suba expo.version em app.json."
             exit 1
           fi
 
@@ -144,14 +141,6 @@ jobs:
       version_code: ${{ needs.versao.outputs.version_code }}
     secrets: inherit
 
-  backend:
-    name: Backend HML
-    needs: [versao, apk]
-    uses: ./.github/workflows/cd-backend-google.yml
-    permissions:
-      contents: read
-      id-token: write
-
   # Autossuficiente de proposito (achado de 23/09/2026, primeira rc): numa reexecucao
   # "so dos jobs que falharam", o GitHub NAO preserva os outputs de um workflow
   # reutilizavel que nao foi reexecutado. `needs.apk.outputs.artefato` chegou VAZIO, e o
@@ -161,7 +150,7 @@ jobs:
   # arquivo (`radar-saude-hom-X.Y.Z-rc.N.apk`), que o proprio APK carrega.
   release:
     name: Tag e GitHub Release
-    needs: [versao, backend, apk]
+    needs: [versao, apk]
     runs-on: ubuntu-latest
     permissions:
       contents: write

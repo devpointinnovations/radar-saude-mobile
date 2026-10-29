@@ -125,3 +125,7 @@ pr_body_retrofit.txt
 
 # diff-cover (M-031): lcov reescrito com caminhos da raiz
 lcov-*.info
+
+# Configuração de agentes fora do .gitignore original (29/10/2026, repositório próprio)
+.agents/
+skills-lock.json

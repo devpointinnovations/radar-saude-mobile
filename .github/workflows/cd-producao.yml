@@ -1,7 +1,7 @@
 # Producao: o push de uma branch `release/X.Y.Z` gera o AAB da Play Store.
 #
 # 14/10/2026 (analise de prontidao para a Play Store, bloqueador B2): a `release/**` so
-# publicava o backend (cd-backend-google.yml, que continua ouvindo este mesmo push). Nao
+# publicava o backend (hoje no radar-saude-backend, com a release dele). Nao
 # existia build do app de producao, e o cd-mobile-apk.yml so gerava APK, que a Play Store
 # nao aceita para app novo.
 #

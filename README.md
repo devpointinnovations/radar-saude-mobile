@@ -167,14 +167,17 @@ Gestores públicos, conselhos de saúde e investidores interessados em um piloto
 
 ## Para desenvolvedores
 
-| Componente | Tecnologia | Pasta |
-|---|---|---|
-| App mobile | Expo 55, React Native, Mapbox, TanStack Query, Zustand | [`frontend/`](frontend/) |
-| API | Java 25, Spring Boot 4, MongoDB | [`backend/`](backend/) |
-| Painel administrativo | Angular 21 | [`admin/`](admin/) |
-| Site público | Cloudflare Workers | [`site/`](site/) |
-| Infraestrutura | Google Cloud Run, GitHub Actions | [`deploy/`](deploy/), [`.github/`](.github/) |
+Desde 29/10/2026 cada parte do projeto tem seu repositório (antes era o monorepo
+[GabrielVogado/saude-monitor](https://github.com/GabrielVogado/saude-monitor), com o
+histórico preservado em cada um):
 
-- **Subir o projeto na sua máquina:** [Guia do Ambiente Local](Documentos/02-arquitetura-tecnica/Guia-Ambiente-Local-v1.0.md) (backend com Docker, app com Expo, URLs da API e problemas comuns).
-- **Documentação completa:** [índice central](Documentos/00-INDICE.md), com negócio, arquitetura, contratos da API, backlog e histórico de melhorias.
-- **Fluxo de trabalho:** branches, ambientes, homologação e deploy no [manual do git-flow](Documentos/10-git-flow/MANUAL.md).
+| Componente | Tecnologia | Repositório |
+|---|---|---|
+| App mobile | Expo 55, React Native, Mapbox, TanStack Query, Zustand | **radar-saude-mobile** (este) |
+| API | Java 25, Spring Boot 4, MongoDB, Google Cloud Run | [radar-saude-backend](https://github.com/devpointinnovations/radar-saude-backend) |
+| Painel administrativo | Angular 21 | [painel-admin-frontend](https://github.com/devpointinnovations/painel-admin-frontend) |
+| Documentação e site público | Markdown, Cloudflare Workers | [radar-saude-docs](https://github.com/devpointinnovations/radar-saude-docs) |
+
+- **Subir o projeto na sua máquina:** [Guia do Ambiente Local](https://github.com/devpointinnovations/radar-saude-docs/blob/develop/Documentos/02-arquitetura-tecnica/Guia-Ambiente-Local-v1.0.md) (backend com Docker, app com Expo, URLs da API e problemas comuns).
+- **Documentação completa:** [índice central](https://github.com/devpointinnovations/radar-saude-docs/blob/develop/Documentos/00-INDICE.md), com negócio, arquitetura, contratos da API, backlog e histórico de melhorias.
+- **Fluxo de trabalho:** branches, ambientes, homologação e deploy no [manual do git-flow](https://github.com/devpointinnovations/radar-saude-docs/blob/develop/Documentos/10-git-flow/MANUAL.md).
